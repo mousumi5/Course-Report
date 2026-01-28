@@ -1,0 +1,7 @@
+{
+  "name": "CoursePulse - Daily Report App",
+  "description": "A professional mobile-first training management app for recording daily activity reports across various security and professional courses, featuring Gemini-powered insights and Google Sheets backend integration.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

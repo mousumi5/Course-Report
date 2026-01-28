@@ -1,0 +1,31 @@
+
+import { CourseType } from './types';
+
+export const COURSES_META: Record<CourseType, { icon: string; color: string }> = {
+  [CourseType.ULT]: { icon: '🎓', color: 'bg-blue-100 text-blue-700' },
+  [CourseType.PRE_BASIC_AVSEC]: { icon: '🛡️', color: 'bg-indigo-100 text-indigo-700' },
+  [CourseType.SCREENER]: { icon: '🔍', color: 'bg-slate-100 text-slate-700' },
+  [CourseType.PET]: { icon: '🏃', color: 'bg-green-100 text-green-700' },
+  [CourseType.BPET]: { icon: '👟', color: 'bg-emerald-100 text-emerald-700' },
+  [CourseType.PULWAMA]: { icon: '🏔️', color: 'bg-red-100 text-red-700' },
+  [CourseType.CRT]: { icon: '🚨', color: 'bg-orange-100 text-orange-700' },
+  [CourseType.QRT]: { icon: '⚡', color: 'bg-yellow-100 text-yellow-700' },
+  [CourseType.DGR]: { icon: '📦', color: 'bg-amber-100 text-amber-700' },
+  [CourseType.DRON]: { icon: '🚁', color: 'bg-sky-100 text-sky-700' },
+  [CourseType.MAAN]: { icon: '🧠', color: 'bg-purple-100 text-purple-700' },
+  [CourseType.INDUCTION]: { icon: '👋', color: 'bg-teal-100 text-teal-700' },
+  [CourseType.FAMILIARISATION]: { icon: '🗺️', color: 'bg-cyan-100 text-cyan-700' },
+  [CourseType.WT]: { icon: '🔫', color: 'bg-zinc-100 text-zinc-700' },
+  [CourseType.E_SCREENING]: { icon: '💻', color: 'bg-violet-100 text-violet-700' },
+  [CourseType.E_PATHSHALA]: { icon: '📚', color: 'bg-rose-100 text-rose-700' },
+  [CourseType.IGOT]: { icon: '🌐', color: 'bg-fuchsia-100 text-fuchsia-700' },
+  [CourseType.WOMEN_LEADERSHIP]: { icon: '👸', color: 'bg-pink-100 text-pink-700' },
+  [CourseType.BEHAVIOUR_DETECTION]: { icon: '🧐', color: 'bg-lime-100 text-lime-700' },
+  [CourseType.ART_OF_LEAVING]: { icon: '🧘', color: 'bg-orange-100 text-orange-700' },
+  [CourseType.WOMEN_OUTDOOR]: { icon: '🧗', color: 'bg-emerald-100 text-emerald-700' },
+  [CourseType.SOFT_SKILLS]: { icon: '🤝', color: 'bg-indigo-100 text-indigo-700' },
+  [CourseType.FINANCIAL_LITERACY]: { icon: '💰', color: 'bg-emerald-100 text-emerald-700' },
+  [CourseType.SECTOR_SPECIFIC]: { icon: '🏢', color: 'bg-slate-200 text-slate-800' },
+  [CourseType.CYBERSECURITY]: { icon: '🔐', color: 'bg-violet-100 text-violet-700' },
+  [CourseType.OTHERS]: { icon: '📝', color: 'bg-gray-100 text-gray-700' },
+};
