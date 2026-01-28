@@ -8,6 +8,7 @@ export const pdfService = {
     const doc = new jsPDF();
     const title = `${courseId.toUpperCase()} - STRATEGIC TRAINING REPORT`;
     
+    // Header styling
     doc.setFillColor(79, 70, 229);
     doc.rect(0, 0, 210, 40, 'F');
     doc.setFontSize(22);
@@ -15,13 +16,15 @@ export const pdfService = {
     doc.text("PERSONNEL PULSE", 14, 22);
     doc.setFontSize(10);
     doc.text(title, 14, 30);
-    doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 150, 30);
+    doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 140, 30);
 
+    // Summary section
     const grandTotal = reports.reduce((sum, r) => sum + (r.grandTotal || 0), 0);
     doc.setTextColor(40, 40, 40);
     doc.setFontSize(14);
-    doc.text(`Total Personnel Strength: ${grandTotal}`, 14, 52);
+    doc.text(`Total Personnel Reached: ${grandTotal}`, 14, 52);
 
+    // AI Analysis section
     if (aiAnalysis) {
       doc.setFontSize(12);
       doc.setTextColor(79, 70, 229);
@@ -32,12 +35,30 @@ export const pdfService = {
       doc.text(splitAnalysis, 14, 78);
     }
 
-    doc.save(`${courseId.replace(/ /g, '_')}_Report.pdf`);
+    // Reports Table
+    autoTable(doc, {
+      startY: aiAnalysis ? 120 : 65,
+      head: [['Date', 'Topics', 'Instructor', 'Venue', 'M', 'F', 'Total']],
+      body: reports.map(r => [
+        r.date,
+        r.topics,
+        r.instructor,
+        r.location,
+        r.totalMale,
+        r.totalFemale,
+        r.grandTotal
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 8, cellPadding: 3 }
+    });
+
+    doc.save(`${courseId.replace(/ /g, '_')}_Strategic_Report.pdf`);
   }
 };
 
 /**
- * UPDATED GOOGLE APPS SCRIPT
+ * UPDATED GOOGLE APPS SCRIPT (V4 - Full Sync Alignment)
  * 
  * Instructions:
  * 1. Open your Google Sheet.
@@ -58,15 +79,22 @@ function doPost(e) {
       let sheet = ss.getSheetByName(tabName);
       if (!sheet) {
         sheet = ss.insertSheet(tabName);
-        const headers = ["ID", "S.No", "CISF No", "Rank", "Name", "DOB", "DOA", "Qualification", "Course From", "Course To", "ASTI Name", "Reg No", "EBCAS ID", "Aadhar", "AEP No", "ID Card No", "Mobile", "Email", "Status", "Timestamp"];
+        const headers = [
+          "ID", "S.No", "CISF No", "Rank", "Name", "DOB", "DOA", "Qualification", 
+          "Basic From", "Basic To", "Basic Ref From", "Basic Ref To",
+          "SCR From", "SCR To", "DGR From", "DGR To",
+          "ASTI Name", "Reg No", "EBCAS ID", "Aadhar", "AEP No", "ID Card No", "Mobile", "Email", "Status", "Timestamp"
+        ];
         sheet.appendRow(headers);
         sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#dcfce7");
       }
       
       const values = [
         data.id, data.sNo, data.cisfNo, data.rank, data.name, data.dob, data.doa, 
-        data.qualification, data.courseFrom, data.courseTo, data.astiName, 
-        data.regNo, data.ebcasId, data.aadharNo, data.aepNo, data.idCardNo, 
+        data.qualification, 
+        data.basicFrom, data.basicTo, data.basicRefFrom, data.basicRefTo,
+        data.scrFrom, data.scrTo, data.dgrFrom, data.dgrTo,
+        data.astiName, data.regNo, data.ebcasId, data.aadharNo, data.aepNo, data.idCardNo, 
         data.mobileNo, data.emailId, data.status, data.timestamp
       ];
 
@@ -146,9 +174,11 @@ function doGet(e) {
     rows.shift();
     const allStaff = rows.map(r => ({
       id: r[0], sNo: r[1], cisfNo: r[2], rank: r[3], name: r[4], dob: r[5], doa: r[6],
-      qualification: r[7], courseFrom: r[8], courseTo: r[9], astiName: r[10],
-      regNo: r[11], ebcasId: r[12], aadharNo: r[13], aepNo: r[14], idCardNo: r[15],
-      mobileNo: r[16], emailId: r[17], status: r[18], timestamp: r[19]
+      qualification: r[7], 
+      basicFrom: r[8], basicTo: r[9], basicRefFrom: r[10], basicRefTo: r[11],
+      scrFrom: r[12], scrTo: r[13], dgrFrom: r[14], dgrTo: r[15],
+      astiName: r[16], regNo: r[17], ebcasId: r[18], aadharNo: r[19], aepNo: r[20], 
+      idCardNo: r[21], mobileNo: r[22], emailId: r[23], status: r[24], timestamp: r[25]
     }));
     return ContentService.createTextOutput(JSON.stringify(allStaff)).setMimeType(ContentService.MimeType.JSON);
   }

@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { CourseType, ActivityReport, StaffRecord, EligibilityStatus } from './types';
 import { dataService } from './services/dataService';
+import { geminiService } from './services/geminiService';
+import { pdfService } from './services/pdfService';
 import CourseWidget from './components/CourseWidget';
 import ReportCard from './components/ReportCard';
 
@@ -18,6 +20,7 @@ const App: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<StaffRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeEligibleTab, setActiveEligibleTab] = useState<EligibilityStatus>('BASIC ELIGIBLE');
   const [showEntryForm, setShowEntryForm] = useState(false);
@@ -159,6 +162,24 @@ const App: React.FC = () => {
       });
       await fetchData();
     } catch (err) { alert("Sync Error"); } finally { setIsSaving(false); }
+  };
+
+  const handleSmartAnalysis = async () => {
+    if (reports.length === 0) {
+      alert("No data to analyze.");
+      return;
+    }
+    setIsAnalyzing(true);
+    try {
+      const analysis = await geminiService.analyzeReports(reports);
+      // For now, let's pick the first course as a representative or use 'General'
+      await pdfService.generateCourseReport(reports[0]?.courseId || CourseType.OTHERS, reports, analysis);
+      alert("AI Analysis complete! Strategic report downloaded.");
+    } catch (error) {
+      alert("Analysis failed. Check your API key or connection.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleExportCSV = (exportAll: boolean = false) => {
@@ -469,6 +490,23 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Analysis Loading Overlay */}
+      {isAnalyzing && (
+        <div className="fixed inset-0 bg-indigo-900/40 backdrop-blur-sm z-[200] flex items-center justify-center p-6">
+          <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center space-y-6 max-w-sm">
+            <div className="relative w-20 h-20 mx-auto">
+              <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center text-indigo-600">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+            </div>
+            <h3 className="text-xl font-black text-slate-800 uppercase">AI Analyzing...</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Generating strategic insights from training patterns</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -478,7 +516,17 @@ const App: React.FC = () => {
         {currentView === 'dashboard' && renderDashboard()}
         {currentView === 'reports' && (
           <div className="space-y-6 animate-fadeIn pb-[140px] pt-4">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter px-2">Activity History</h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
+              <h2 className="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter">Activity History</h2>
+              <button 
+                onClick={handleSmartAnalysis}
+                disabled={isAnalyzing}
+                className="flex items-center gap-3 bg-indigo-600 text-white px-6 py-4 rounded-2xl shadow-xl shadow-indigo-100 font-black uppercase text-[10px] tracking-widest hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                AI Strategic Summary
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {reports.map(r => <ReportCard key={r.id} report={r} onDelete={async (id) => { if(confirm('Delete?')) { await dataService.deleteReport(id); fetchData(); }}} />)}
               {reports.length === 0 && <div className="col-span-full text-center py-32 text-slate-300 font-black text-xs uppercase tracking-widest opacity-50">No logs found</div>}
