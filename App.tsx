@@ -161,9 +161,9 @@ const App: React.FC = () => {
     } catch (err) { alert("Sync Error"); } finally { setIsSaving(false); }
   };
 
-  const handleExportCSV = () => {
-    const currentList = categorizedStaff[activeEligibleTab];
-    if (currentList.length === 0) {
+  const handleExportCSV = (exportAll: boolean = false) => {
+    const listToExport = exportAll ? staffRecords : categorizedStaff[activeEligibleTab];
+    if (listToExport.length === 0) {
       alert("No data available to export.");
       return;
     }
@@ -175,7 +175,7 @@ const App: React.FC = () => {
       "ASTI Name", "Reg No", "EBCAS ID", "Aadhar No", "AEP No", "ID Card No", "Mobile No", "Email ID", "Status"
     ];
 
-    const csvRows = currentList.map(s => [
+    const csvRows = listToExport.map(s => [
       `"${s.sNo || ''}"`,
       `"${s.cisfNo || ''}"`,
       `"${s.rank || ''}"`,
@@ -199,7 +199,7 @@ const App: React.FC = () => {
       `"${s.idCardNo || ''}"`,
       `"${s.mobileNo || ''}"`,
       `"${s.emailId || ''}"`,
-      `"${activeEligibleTab}"`
+      `"${exportAll ? getAutoStatus(s) : activeEligibleTab}"`
     ].join(','));
 
     const csvContent = [headers.join(','), ...csvRows].join('\n');
@@ -207,8 +207,12 @@ const App: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const dateString = new Date().toISOString().split('T')[0];
+    const filename = exportAll 
+      ? `Full_Personnel_Registry_${dateString}.csv` 
+      : `Filtered_Registry_${activeEligibleTab.replace(/ /g, '_')}_${dateString}.csv`;
+    
     link.setAttribute("href", url);
-    link.setAttribute("download", `Personnel_Registry_${activeEligibleTab.replace(/ /g, '_')}_${dateString}.csv`);
+    link.setAttribute("download", filename);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -265,22 +269,31 @@ const App: React.FC = () => {
       <div className="sticky top-0 bg-slate-50/95 backdrop-blur-xl z-20 py-4 md:py-6 border-b border-slate-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <h2 className="text-xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter">Personnel Registry</h2>
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 md:w-64">
+          <div className="flex items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar pb-2 md:pb-0">
+            <div className="relative flex-1 min-w-[150px] md:w-64">
               <input type="text" placeholder="SEARCH..." className="w-full bg-white border border-slate-200 rounded-2xl px-10 py-3 text-xs font-bold uppercase shadow-sm focus:ring-2 focus:ring-indigo-500/20" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               <svg className="w-4 h-4 text-slate-400 absolute left-4 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
             
             <button 
-              onClick={handleExportCSV} 
-              className="p-3 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl shadow-sm hover:bg-emerald-100 transition-all transform active:scale-95 flex items-center gap-2"
-              title="Download CSV"
+              onClick={() => handleExportCSV(false)} 
+              className="p-3 bg-white text-indigo-600 border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 transition-all transform active:scale-95 flex items-center gap-2 whitespace-nowrap"
+              title="Export Current View"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-              <span className="hidden md:block text-[10px] font-black uppercase">CSV</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <span className="text-[9px] font-black uppercase">Filter</span>
             </button>
 
-            <button onClick={() => { setShowEntryForm(!showEntryForm); setStaffFormData(initialStaffState); setIsUpdateMode(false); }} className={`p-3 rounded-2xl shadow-lg shadow-indigo-100 ${showEntryForm ? 'bg-rose-500' : 'bg-indigo-600'} text-white transition-all transform active:scale-95`}>
+            <button 
+              onClick={() => handleExportCSV(true)} 
+              className="p-3 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl shadow-sm hover:bg-emerald-100 transition-all transform active:scale-95 flex items-center gap-2 whitespace-nowrap"
+              title="Export All Records"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <span className="text-[9px] font-black uppercase">All</span>
+            </button>
+
+            <button onClick={() => { setShowEntryForm(!showEntryForm); setStaffFormData(initialStaffState); setIsUpdateMode(false); }} className={`p-3 rounded-2xl shadow-lg shadow-indigo-100 ${showEntryForm ? 'bg-rose-500' : 'bg-indigo-600'} text-white transition-all transform active:scale-95 shrink-0`}>
               {showEntryForm ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg> : <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>}
             </button>
           </div>
